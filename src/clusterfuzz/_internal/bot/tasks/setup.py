@@ -182,7 +182,7 @@ def handle_setup_testcase_error(uworker_output: uworker_io.UworkerOutput):
   # TODO(metzman): Experiment with making this unnecessary.
   # First update comment.
   testcase = data_handler.get_testcase_by_id(
-      uworker_output.uworker_input.testcase_id.testcase_id)
+      uworker_output.uworker_input.testcase_id)
   data_handler.update_testcase_comment(testcase, data_types.TaskState.ERROR,
                                        uworker_output.error_message)
 
@@ -225,7 +225,7 @@ def setup_testcase(testcase,
   # Prepare an error result to return in case of error.
   # Only include uworker_input for callers that aren't deserializing the output
   # and thus, uworker_io is not adding the input to.
-  # TODO(metzman): Remove this when the consolidation is complete.
+  # TODO(metzman): Remove the input when the consolidation is complete.
   uworker_error_input = uworker_msg_pb2.Input(
       testcase_id=str(testcase_id), job_type=job_type)
   uworker_error_output = uworker_io.UworkerOutput(
@@ -432,6 +432,7 @@ def _clear_old_data_bundles_if_needed():
 def update_data_bundle(update_input, data_bundle):
   """Updates a data bundle to the latest version."""
   # TODO(metzman): Migrate this functionality to utask.
+  logs.log('Setting up data bundle %s.' % data_bundle)
   # This module can't be in the global imports due to appengine issues
   # with multiprocessing and psutil imports.
   from clusterfuzz._internal.google_cloud_utils import gsutil
@@ -534,9 +535,11 @@ def preprocess_update_fuzzer_and_data_bundles(fuzzer_name):
     logs.log_error('No fuzzer exists with name %s.' % fuzzer_name)
     raise errors.InvalidFuzzerError
 
-  update_input.data_bundles = ndb_utils.get_all_from_query(
-      data_types.DataBundle.query(
-          data_types.DataBundle.name == update_input.fuzzer.data_bundle_name))
+  update_input.data_bundles = list(
+      ndb_utils.get_all_from_query(
+          data_types.DataBundle.query(data_types.DataBundle.name ==
+                                      update_input.fuzzer.data_bundle_name)))
+  logs.log('Data bundles: %s' % update_input.data_bundles)
 
   update_input.fuzzer_log_upload_url = storage.get_signed_upload_url(
       fuzzer_logs.get_logs_gcs_path(fuzzer_name=fuzzer_name))
@@ -612,6 +615,7 @@ def _update_fuzzer(update_input, fuzzer_directory, version_file):
 def _set_up_data_bundles(update_input):
   """Sets up data bundles. Helper for update_fuzzer_and_data_bundles."""
   # Setup data bundles associated with this fuzzer.
+  logs.log('Setting up data bundles.')
   for data_bundle in update_input.data_bundles:
     if not update_data_bundle(update_input, data_bundle):
       return False

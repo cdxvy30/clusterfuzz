@@ -601,7 +601,7 @@ def get_testcases(testcase_count, testcase_directory, data_directory):
   logs.log('Locating generated test cases.')
 
   # Get the list of testcase files.
-  testcase_directories = [testcase_directory]
+  testcase_directories = [testcase_directory, data_directory]
   testcase_file_paths = testcase_manager.get_testcases_from_directories(
       testcase_directories)
 
@@ -1913,7 +1913,7 @@ class FuzzingSession:
     # TODO(metzman): Finish this.
     fuzz_task_output = uworker_output.fuzz_task_output
     upload_job_run_stats(
-        uworker_output.fully_qualified_fuzzer_name, self.job_type,
+        fuzz_task_output.fully_qualified_fuzzer_name, self.job_type,
         fuzz_task_output.crash_revision, fuzz_task_output.job_run_timestamp,
         fuzz_task_output.new_crash_count, fuzz_task_output.known_crash_count,
         fuzz_task_output.testcases_executed, fuzz_task_output.job_run_crashes)

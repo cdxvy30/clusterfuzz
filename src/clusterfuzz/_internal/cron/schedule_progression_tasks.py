@@ -1,4 +1,4 @@
-# Copyright 2019 Google LLC
+# Copyright 2023 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,16 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Cleanup task for cleaning up unneeded testcases."""
+"""Creates progression tasks."""
 
-from clusterfuzz._internal.cron import cleanup
-from handlers import base_handler
-from libs import handler
+from clusterfuzz._internal.cron.helpers import tasks_scheduler
 
 
-class Handler(base_handler.Handler):
-  """Cleanup."""
-
-  @handler.cron()
-  def get(self):
-    cleanup.main()
+def main():
+  """Creates progression tasks."""
+  task = 'progression'
+  tasks_scheduler.schedule(task)
+  return True

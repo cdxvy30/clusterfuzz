@@ -26,16 +26,16 @@ from clusterfuzz._internal.base import utils
 from clusterfuzz._internal.chrome import build_info
 from clusterfuzz._internal.crash_analysis import crash_comparer
 from clusterfuzz._internal.crash_analysis import severity_analyzer
+from clusterfuzz._internal.cron.libs import mail
 from clusterfuzz._internal.datastore import data_handler
 from clusterfuzz._internal.datastore import data_types
 from clusterfuzz._internal.datastore import ndb_utils
 from clusterfuzz._internal.fuzzing import leak_blacklist
+from clusterfuzz._internal.issue_management import issue_filer
+from clusterfuzz._internal.issue_management import issue_tracker_policy
+from clusterfuzz._internal.issue_management import issue_tracker_utils
 from clusterfuzz._internal.metrics import crash_stats
 from clusterfuzz._internal.metrics import logs
-from libs import mail
-from libs.issue_management import issue_filer
-from libs.issue_management import issue_tracker_policy
-from libs.issue_management import issue_tracker_utils
 
 GENERIC_INCORRECT_COMMENT = (
     '\n\nIf this is incorrect, please add the {label_text}')
@@ -97,11 +97,14 @@ def cleanup_reports_metadata():
 
 def cleanup_testcases_and_issues():
   """Clean up unneeded open testcases and their associated issues."""
+  logs.log('Getting all job type names.')
   jobs = data_handler.get_all_job_type_names()
+  logs.log('Getting test case keys from query.')
   testcase_keys = ndb_utils.get_all_from_query(
       data_types.Testcase.query(
           ndb_utils.is_false(data_types.Testcase.triaged)),
       keys_only=True)
+  logs.log('Getting top crashes for all projects and platforms.')
   top_crashes_by_project_and_platform_map = (
       get_top_crashes_for_all_projects_and_platforms())
 
